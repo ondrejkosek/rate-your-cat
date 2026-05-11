@@ -672,7 +672,8 @@ function displayResults(label, confidence, cuteness) {
   const confPct = Math.round(confidence * 100);
   document.getElementById('confPct').textContent = confPct + '%';
   document.getElementById('confValue').textContent = confPct + '%';
-  document.getElementById('cutenessValue').textContent = cuteness ? cuteness.toFixed(1) : '—';
+  const cutenessDisplay = label && label.toLowerCase() !== 'unknown' ? '10 / 10' : (cuteness ? cuteness.toFixed(1) : '—');
+  document.getElementById('cutenessValue').textContent = cutenessDisplay;
 
   results.classList.add('visible');
 
