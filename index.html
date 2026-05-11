@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rate Your Cat™</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cream: #FAF7F2;
+    --warm-white: #FFF9F3;
+    --ink: #1A1208;
+    --ink-muted: #5C4F3A;
+    --ink-faint: #A8977E;
+    --orange: #D4580A;
+    --orange-light: #FCEADE;
+    --orange-mid: #F0915A;
+    --border: #E8DFD0;
+    --border-strong: #C9BAA4;
+    --success-bg: #EAF3DE;
+    --success-text: #3B6D11;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── HEADER ── */
+  header {
+    padding: 2rem 2rem 1.5rem;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    border-bottom: 0.5px solid var(--border);
+    background: var(--warm-white);
+  }
+
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .logo sup {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.45rem;
+    vertical-align: super;
+    letter-spacing: 0.1em;
+    color: var(--orange);
+    font-weight: 500;
+  }
+
+  .tagline {
+    font-size: 0.72rem;
+    color: var(--ink-faint);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  /* ── MAIN LAYOUT ── */
+  main {
+    flex: 1;
+    max-width: 820px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 3rem 2rem;
+  }
+
+  /* ── HERO TEXT ── */
+  .hero {
+    margin-bottom: 3rem;
+    text-align: center;
+  }
+
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    margin-bottom: 1rem;
+  }
+
+  .hero h1 em {
+    font-style: italic;
+    color: var(--orange);
+  }
+
+  .hero p {
+    font-size: 1rem;
+    color: var(--ink-muted);
+    max-width: 460px;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+
+  /* ── UPLOAD ZONE ── */
+  .upload-zone {
+    border: 1.5px dashed var(--border-strong);
+    border-radius: 16px;
+    background: var(--warm-white);
+    padding: 3rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+    margin-bottom: 2rem;
+  }
+
+  .upload-zone:hover, .upload-zone.drag-over {
+    border-color: var(--orange);
+    background: var(--orange-light);
+  }
+
+  .upload-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+
+  .upload-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: block;
+    pointer-events: none;
+  }
+
+  .upload-label {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    color: var(--ink);
+    display: block;
+    margin-bottom: 0.4rem;
+    pointer-events: none;
+  }
+
+  .upload-sublabel {
+    font-size: 0.82rem;
+    color: var(--ink-faint);
+    font-family: 'DM Mono', monospace;
+    pointer-events: none;
+  }
+
+  /* ── PREVIEW ── */
+  .preview-wrap {
+    display: none;
+    margin-bottom: 2rem;
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 0.5px solid var(--border);
+    background: var(--warm-white);
+  }
+
+  .preview-wrap.visible { display: block; }
+
+  .preview-wrap img {
+    width: 100%;
+    max-height: 420px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .preview-change {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(26, 18, 8, 0.7);
+    color: #FFF9F3;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 0.78rem;
+    font-family: 'DM Mono', monospace;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: background 0.15s;
+  }
+
+  .preview-change:hover { background: rgba(26, 18, 8, 0.9); }
+
+  /* ── CONFIG ── */
+  .config-section {
+    background: var(--warm-white);
+    border: 0.5px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    display: none;
+  }
+
+  .config-section.visible { display: block; }
+
+  .config-section summary-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    display: block;
+    margin-bottom: 0.6rem;
+  }
+
+  .config-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  @media (max-width: 520px) {
+    .config-grid { grid-template-columns: 1fr; }
+  }
+
+  .field label {
+    font-size: 0.78rem;
+    color: var(--ink-muted);
+    display: block;
+    margin-bottom: 4px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.06em;
+  }
+
+  .field input {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 0.88rem;
+    font-family: 'DM Mono', monospace;
+    border: 0.5px solid var(--border-strong);
+    border-radius: 8px;
+    background: var(--cream);
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .field input:focus { border-color: var(--orange); }
+
+  .field.full { grid-column: 1 / -1; }
+
+  /* ── BUTTON ── */
+  .submit-btn {
+    width: 100%;
+    padding: 1rem;
+    background: var(--ink);
+    color: var(--cream);
+    border: none;
+    border-radius: 12px;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 2rem;
+    letter-spacing: -0.01em;
+  }
+
+  .submit-btn:hover { background: var(--orange); }
+  .submit-btn:active { transform: scale(0.99); }
+  .submit-btn:disabled { background: var(--ink-faint); cursor: not-allowed; transform: none; }
+
+  .paw { font-size: 1.2rem; }
+
+  /* ── SPINNER ── */
+  .spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(250,247,242,0.4);
+    border-top-color: var(--cream);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+
+  .submit-btn.loading .spinner { display: block; }
+  .submit-btn.loading .btn-text { opacity: 0.7; }
+  .submit-btn.loading .paw { display: none; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── RESULTS ── */
+  .results {
+    display: none;
+    animation: fadeUp 0.4s ease;
+  }
+
+  .results.visible { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-header {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 1.2rem;
+    font-style: italic;
+  }
+
+  .breed-card {
+    background: var(--warm-white);
+    border: 0.5px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .breed-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+    color: var(--ink);
+  }
+
+  .metrics-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+
+  .metric {
+    background: var(--cream);
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+    border: 0.5px solid var(--border);
+  }
+
+  .metric-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 1.8rem;
+    font-weight: 500;
+    color: var(--orange);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .metric-label {
+    font-size: 0.72rem;
+    color: var(--ink-faint);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* ── CONFIDENCE BAR ── */
+  .bar-wrap {
+    margin-top: 1.2rem;
+  }
+
+  .bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    color: var(--ink-muted);
+    font-family: 'DM Mono', monospace;
+    margin-bottom: 6px;
+  }
+
+  .bar-track {
+    height: 6px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    background: var(--orange);
+    border-radius: 99px;
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 0%;
+  }
+
+  /* ── ERROR ── */
+  .error-box {
+    display: none;
+    background: #FCEBEB;
+    border: 0.5px solid #F09595;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    color: #501313;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .error-box.visible { display: block; }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 1.5rem;
+    font-size: 0.75rem;
+    color: var(--ink-faint);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.06em;
+    border-top: 0.5px solid var(--border);
+  }
+
+  /* ── API CONFIG TOGGLE ── */
+  .settings-toggle {
+    background: none;
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 0.75rem;
+    font-family: 'DM Mono', monospace;
+    color: var(--ink-muted);
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    margin-bottom: 1rem;
+    transition: border-color 0.15s, color 0.15s;
+  }
+
+  .settings-toggle:hover { border-color: var(--orange); color: var(--orange); }
+
+  .settings-panel {
+    display: none;
+    background: var(--warm-white);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .settings-panel.open { display: block; }
+
+  .settings-note {
+    font-size: 0.72rem;
+    color: var(--ink-faint);
+    font-family: 'DM Mono', monospace;
+    margin-top: 0.6rem;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Rate Your Cat<sup>TM</sup></div>
+  <div class="tagline">AI Breed Classifier · Azure ML</div>
+</header>
+
+<main>
+  <div class="hero">
+    <h1>What breed is<br><em>your cat?</em></h1>
+    <p>Upload a photo and our cloud model will identify the breed, confidence, and a scientific cuteness assessment.</p>
+  </div>
+
+  <!-- Upload zone -->
+  <div class="upload-zone" id="uploadZone">
+    <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp" />
+    <span class="upload-icon">🐱</span>
+    <span class="upload-label">Drop a cat photo here</span>
+    <span class="upload-sublabel">jpg · png · webp — max 10mb</span>
+  </div>
+
+  <!-- Image preview -->
+  <div class="preview-wrap" id="previewWrap">
+    <img id="previewImg" src="" alt="Your cat" />
+    <button class="preview-change" id="changeBtn">change photo</button>
+  </div>
+
+  <!-- Settings toggle -->
+  <button class="settings-toggle" id="settingsToggle">⚙ api settings</button>
+
+  <!-- API Settings -->
+  <div class="settings-panel" id="settingsPanel">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+      <div class="field full">
+        <label>endpoint url</label>
+        <input type="text" id="endpointUrl" placeholder="https://your-endpoint.inference.ml.azure.com/score" />
+      </div>
+      <div class="field full">
+        <label>api key</label>
+        <input type="password" id="apiKey" placeholder="your-azure-ml-api-key" />
+      </div>
+    </div>
+    <p class="settings-note">⚠ Key is stored only in memory — safe for demo use. Do not commit to public repos.</p>
+  </div>
+
+  <!-- Error -->
+  <div class="error-box" id="errorBox"></div>
+
+  <!-- Submit -->
+  <button class="submit-btn" id="submitBtn" disabled>
+    <span class="paw">🐾</span>
+    <span class="btn-text">Identify my cat</span>
+    <div class="spinner"></div>
+  </button>
+
+  <!-- Results -->
+  <div class="results" id="results">
+    <div class="result-header">— analysis complete —</div>
+    <div class="breed-card">
+      <div id="breedName" class="breed-name">Maine Coon</div>
+
+      <div class="bar-wrap">
+        <div class="bar-label">
+          <span>confidence</span>
+          <span id="confPct">0%</span>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill" id="confBar"></div>
+        </div>
+      </div>
+
+      <div class="metrics-row">
+        <div class="metric">
+          <div class="metric-value" id="confValue">—</div>
+          <div class="metric-label">confidence</div>
+        </div>
+        <div class="metric">
+          <div class="metric-value" id="cutenessValue">—</div>
+          <div class="metric-label">cuteness™</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  rate your cat™ · 4IZ176 cloud data mining · azure ml endpoint
+</footer>
+
+<script>
+const fileInput = document.getElementById('fileInput');
+const uploadZone = document.getElementById('uploadZone');
+const previewWrap = document.getElementById('previewWrap');
+const previewImg = document.getElementById('previewImg');
+const changeBtn = document.getElementById('changeBtn');
+const submitBtn = document.getElementById('submitBtn');
+const results = document.getElementById('results');
+const errorBox = document.getElementById('errorBox');
+const settingsToggle = document.getElementById('settingsToggle');
+const settingsPanel = document.getElementById('settingsPanel');
+const endpointUrl = document.getElementById('endpointUrl');
+const apiKey = document.getElementById('apiKey');
+
+let base64Image = null;
+
+// Load saved settings
+const savedUrl = localStorage.getItem('ryc_endpoint') || '';
+const savedKey = localStorage.getItem('ryc_key') || '';
+endpointUrl.value = savedUrl;
+apiKey.value = savedKey;
+
+settingsToggle.addEventListener('click', () => {
+  settingsPanel.classList.toggle('open');
+});
+
+endpointUrl.addEventListener('input', () => localStorage.setItem('ryc_endpoint', endpointUrl.value));
+apiKey.addEventListener('input', () => localStorage.setItem('ryc_key', apiKey.value));
+
+// Drag and drop
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+});
+
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) handleFile(fileInput.files[0]);
+});
+
+changeBtn.addEventListener('click', () => {
+  fileInput.value = '';
+  base64Image = null;
+  previewWrap.classList.remove('visible');
+  uploadZone.style.display = '';
+  submitBtn.disabled = true;
+  results.classList.remove('visible');
+  errorBox.classList.remove('visible');
+});
+
+function handleFile(file) {
+  if (file.size > 10 * 1024 * 1024) {
+    showError('File too large — please use an image under 10MB.');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const dataUrl = e.target.result;
+    previewImg.src = dataUrl;
+    uploadZone.style.display = 'none';
+    previewWrap.classList.add('visible');
+    base64Image = dataUrl.split(',')[1];
+    submitBtn.disabled = false;
+    results.classList.remove('visible');
+    errorBox.classList.remove('visible');
+  };
+  reader.readAsDataURL(file);
+}
+
+submitBtn.addEventListener('click', async () => {
+  if (!base64Image) return;
+
+  const url = endpointUrl.value.trim();
+  const key = apiKey.value.trim();
+
+  if (!url || !key) {
+    showError('Please enter your Azure ML endpoint URL and API key in ⚙ api settings above.');
+    settingsPanel.classList.add('open');
+    return;
+  }
+
+  setLoading(true);
+  errorBox.classList.remove('visible');
+  results.classList.remove('visible');
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + key
+      },
+      body: JSON.stringify({ image: base64Image })
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`HTTP ${response.status}: ${text.slice(0, 200)}`);
+    }
+
+    const data = await response.json();
+
+    const label = data.label || data.breed || data.prediction || 'Unknown';
+    const confidence = parseFloat(data.confidence ?? data.probability ?? data.score ?? 0);
+    const cuteness = parseFloat(data.cuteness ?? data.cuteness_score ?? 0);
+
+    displayResults(label, confidence, cuteness);
+  } catch (err) {
+    showError('Request failed: ' + err.message);
+  } finally {
+    setLoading(false);
+  }
+});
+
+function displayResults(label, confidence, cuteness) {
+  document.getElementById('breedName').textContent = label;
+
+  const confPct = Math.round(confidence * 100);
+  document.getElementById('confPct').textContent = confPct + '%';
+  document.getElementById('confValue').textContent = confPct + '%';
+  document.getElementById('cutenessValue').textContent = cuteness ? cuteness.toFixed(1) : '—';
+
+  results.classList.add('visible');
+
+  // Animate bar after paint
+  setTimeout(() => {
+    document.getElementById('confBar').style.width = confPct + '%';
+  }, 50);
+
+  results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function showError(msg) {
+  errorBox.textContent = msg;
+  errorBox.classList.add('visible');
+}
+
+function setLoading(on) {
+  submitBtn.disabled = on;
+  submitBtn.classList.toggle('loading', on);
+}
+</script>
+</body>
+</html>
