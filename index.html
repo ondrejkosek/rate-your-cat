@@ -423,41 +423,7 @@
     border-top: 0.5px solid var(--border);
   }
 
-  /* ── API CONFIG TOGGLE ── */
-  .settings-toggle {
-    background: none;
-    border: 0.5px solid var(--border);
-    border-radius: 8px;
-    padding: 6px 14px;
-    font-size: 0.75rem;
-    font-family: 'DM Mono', monospace;
-    color: var(--ink-muted);
-    cursor: pointer;
-    letter-spacing: 0.06em;
-    margin-bottom: 1rem;
-    transition: border-color 0.15s, color 0.15s;
-  }
 
-  .settings-toggle:hover { border-color: var(--orange); color: var(--orange); }
-
-  .settings-panel {
-    display: none;
-    background: var(--warm-white);
-    border: 0.5px solid var(--border);
-    border-radius: 12px;
-    padding: 1.25rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .settings-panel.open { display: block; }
-
-  .settings-note {
-    font-size: 0.72rem;
-    color: var(--ink-faint);
-    font-family: 'DM Mono', monospace;
-    margin-top: 0.6rem;
-    line-height: 1.5;
-  }
 </style>
 </head>
 <body>
@@ -485,24 +451,6 @@
   <div class="preview-wrap" id="previewWrap">
     <img id="previewImg" src="" alt="Your cat" />
     <button class="preview-change" id="changeBtn">change photo</button>
-  </div>
-
-  <!-- Settings toggle -->
-  <button class="settings-toggle" id="settingsToggle">⚙ api settings</button>
-
-  <!-- API Settings -->
-  <div class="settings-panel" id="settingsPanel">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-      <div class="field full">
-        <label>endpoint url</label>
-        <input type="text" id="endpointUrl" placeholder="https://your-endpoint.inference.ml.azure.com/score" />
-      </div>
-      <div class="field full">
-        <label>api key</label>
-        <input type="password" id="apiKey" placeholder="your-azure-ml-api-key" />
-      </div>
-    </div>
-    <p class="settings-note">⚠ Key is stored only in memory — safe for demo use. Do not commit to public repos.</p>
   </div>
 
   <!-- Error -->
@@ -547,6 +495,8 @@
 
 <footer>
   rate your cat™ · 4IZ176 cloud data mining · azure ml endpoint
+  <br style="margin-bottom:4px">
+  <span style="opacity:0.7">frontend vibe-coded with <a href="https://claude.ai" style="color:inherit;text-decoration:underline;text-underline-offset:2px">Claude</a> · model trained on azure ml</span>
 </footer>
 
 <script>
@@ -558,25 +508,10 @@ const changeBtn = document.getElementById('changeBtn');
 const submitBtn = document.getElementById('submitBtn');
 const results = document.getElementById('results');
 const errorBox = document.getElementById('errorBox');
-const settingsToggle = document.getElementById('settingsToggle');
-const settingsPanel = document.getElementById('settingsPanel');
-const endpointUrl = document.getElementById('endpointUrl');
-const apiKey = document.getElementById('apiKey');
+
+const WORKER_URL = 'https://quiet-hat-be96.spider-ondrasa.workers.dev';
 
 let base64Image = null;
-
-// Load saved settings
-const savedUrl = localStorage.getItem('ryc_endpoint') || '';
-const savedKey = localStorage.getItem('ryc_key') || '';
-endpointUrl.value = savedUrl;
-apiKey.value = savedKey;
-
-settingsToggle.addEventListener('click', () => {
-  settingsPanel.classList.toggle('open');
-});
-
-endpointUrl.addEventListener('input', () => localStorage.setItem('ryc_endpoint', endpointUrl.value));
-apiKey.addEventListener('input', () => localStorage.setItem('ryc_key', apiKey.value));
 
 // Drag and drop
 uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
@@ -624,26 +559,14 @@ function handleFile(file) {
 submitBtn.addEventListener('click', async () => {
   if (!base64Image) return;
 
-  const url = endpointUrl.value.trim();
-  const key = apiKey.value.trim();
-
-  if (!url || !key) {
-    showError('Please enter your Azure ML endpoint URL and API key in ⚙ api settings above.');
-    settingsPanel.classList.add('open');
-    return;
-  }
-
   setLoading(true);
   errorBox.classList.remove('visible');
   results.classList.remove('visible');
 
   try {
-    const response = await fetch(url, {
+    const response = await fetch(WORKER_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + key
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ image: base64Image })
     });
 
@@ -652,7 +575,8 @@ submitBtn.addEventListener('click', async () => {
       throw new Error(`HTTP ${response.status}: ${text.slice(0, 200)}`);
     }
 
-    const data = await response.json();
+    let data = await response.json();
+    if (typeof data === 'string') data = JSON.parse(data);
 
     const label = data.label || data.breed || data.prediction || 'Unknown';
     const confidence = parseFloat(data.confidence ?? data.probability ?? data.score ?? 0);
@@ -672,12 +596,10 @@ function displayResults(label, confidence, cuteness) {
   const confPct = Math.round(confidence * 100);
   document.getElementById('confPct').textContent = confPct + '%';
   document.getElementById('confValue').textContent = confPct + '%';
-  const cutenessDisplay = label && label.toLowerCase() !== 'unknown' ? '10 / 10' : (cuteness ? cuteness.toFixed(1) : '—');
-  document.getElementById('cutenessValue').textContent = cutenessDisplay;
+  document.getElementById('cutenessValue').textContent = cuteness ? cuteness + '/10' : '—';
 
   results.classList.add('visible');
 
-  // Animate bar after paint
   setTimeout(() => {
     document.getElementById('confBar').style.width = confPct + '%';
   }, 50);
